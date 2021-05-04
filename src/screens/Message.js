@@ -15,7 +15,8 @@ import { Avatar, Divider, Input } from 'react-native-elements';
 import Icon from "react-native-vector-icons/Ionicons";
 import { BUTTON_ICON, COLORS, ICON } from '../../utils/colors';
 
-export default function Message() {
+export default function Message({route, navigation}) {
+    // console.log('ROUTE: ', route);
     const listData = [
         { id: 1, date: "9:50 am", type: 'in', message: "Lorem ipsum dolor sit amet" },
         { id: 2, date: "9:50 am", type: 'out', message: "Lorem ipsum dolor sit amet" },

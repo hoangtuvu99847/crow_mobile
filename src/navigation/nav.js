@@ -8,7 +8,7 @@ import Message from '../screens/Message';
 import { BUTTON_ICON } from '../../utils/colors';
 import { createStackNavigator } from "@react-navigation/stack";
 import { Button } from 'react-native-elements/dist/buttons/Button';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { Avatar } from 'react-native-elements';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import Search from '../screens/Search';
@@ -16,49 +16,72 @@ import Search from '../screens/Search';
 
 // OPRIONS OF EACH SCREEN  
 
-const ChatScreenCustomizeOptions = (navigation) => {
+const RoomScreenCustomizeOptions = (route, navigation) => {
     const handleClickMenu = () => { navigation.openDrawer() }
     const handleClickSearch = () => { navigation.navigate('Search') }
     return {
         headerLeft: () => (
-            <Button icon={
-                <Icon name='menu' size={20} onPress={() => handleClickMenu()} style={{ marginHorizontal: 6 }} />
-            }>
-            </Button>
+            <TouchableOpacity style={{ marginTop: 5, marginHorizontal: 10 }} onPress={() => handleClickMenu()}>
+                <Icon name='menu' size={20} style={{ marginHorizontal: 6 }} />
+            </TouchableOpacity>
         ),
-        // headerTitle: () => (
-        //     <View style={{ marginHorizontal: 0 }}>
-        //         <Text style={{ fontWeight: "600", fontSize: 18 }}>KT Vũ</Text>
-        //         <View>
-        //             <Icon name="radio-button-on-outline" size={12} color={'green'}><Text>Active</Text></Icon>
-        //         </View>
-        //     </View>
-        // ),
+        headerTitle: () => (
+            <View>
+                <Text style={{ fontWeight: "600", fontSize: 18 }}>{route.name === "Rooms" && "Rooms"}</Text>
+            </View>
+        ),
+
         headerRight: () => (
             <View style={{ flexDirection: "row" }}>
-                <Button onPress={() => handleClickSearch()} icon={
+                <TouchableOpacity onPress={() => handleClickSearch()} style={{ marginTop: 7 }}>
                     <Icon name='search' size={20} />
-                }>
-                </Button>
+                </TouchableOpacity>
                 <Avatar
                     rounded
+                    onPress={() => {}}
                     source={{
                         uri:
                             'https://s3.amazonaws.com/uifaces/faces/twitter/ladylexy/128.jpg',
                     }}
                     containerStyle={{ marginHorizontal: 16 }}
                 />
-            </View>
+            </View >
         )
     }
 }
 
-const SearchScreenCustomizeOptions = (navigation) => {
+const SearchScreenCustomizeOptions = (route, navigation) => {
     return {
+        headerTitle: () => (
+            <View style={{ marginHorizontal: 0 }}>
+                <Text style={{ fontWeight: "600", fontSize: 18 }}>Search</Text>
+            </View>
+        ),
 
     }
 }
-
+const MessageScreenCustomizeOptions = (route, navigation) => {
+    const { roomName } = route.params
+    return {
+        headerTitle: () => (
+            <View style={{ marginHorizontal: 0 }}>
+                <Text style={{ fontWeight: "600", fontSize: 18 }}>{roomName}</Text>
+                <View style={{ flexDirection: 'row' }}>
+                    {/* <Icon name="ellipse" size={12} color={'green'}><Text>50/50 users</Text></Icon> */}
+                    <Icon name="ellipse" style={{ marginTop: 2, marginRight: 4 }} size={12} color={'green'}></Icon><Text style={{ fontSize: 12 }}>1 people</Text>
+                </View>
+            </View>
+        ),
+        headerRight: () => (
+            <View style={{ flexDirection: "row", marginHorizontal: 6 }}>
+                <Button onPress={() => handleClickSearch()} icon={
+                    <Icon name='search' size={20} />
+                }>
+                </Button>
+            </View>
+        )
+    }
+}
 
 
 // ====================================================
@@ -77,14 +100,14 @@ function TabNavigation() {
                     return <Icon name="chatbubbles-outline" size={size} color={color} />
 
                 }
-            },
+            }
 
         })} tabBarOptions={{
             activeTintColor: BUTTON_ICON.ACTIVE,
             inactiveTintColor: BUTTON_ICON.INACTIVE,
         }}>
             {/* <Tab.Screen name="Message" component={Message} /> */}
-            <Tab.Screen name="Room" component={Room} />
+            <Tab.Screen name="Room" component={Room} options={{}} />
             <Tab.Screen name="Status" component={Status} />
         </Tab.Navigator>
     )
@@ -94,12 +117,11 @@ const Stack = createStackNavigator()
 
 
 function Chat({ navigation }) {
-
     return (
         <Stack.Navigator>
-            <Stack.Screen name='Chats' component={TabNavigation} options={ChatScreenCustomizeOptions(navigation)}></Stack.Screen>
-            <Stack.Screen name="Search" component={Search} options={SearchScreenCustomizeOptions(navigation)}></Stack.Screen>
-            <Stack.Screen name="Message" component={Message} options={SearchScreenCustomizeOptions(navigation)}></Stack.Screen>
+            <Stack.Screen name='Rooms' component={TabNavigation} options={({ route }) => RoomScreenCustomizeOptions(route, navigation)}></Stack.Screen>
+            <Stack.Screen name="Search" component={Search} options={({ route }) => SearchScreenCustomizeOptions(navigation)}></Stack.Screen>
+            <Stack.Screen name="Message" component={Message} options={({ route }) => MessageScreenCustomizeOptions(route, navigation)}></Stack.Screen>
         </Stack.Navigator>
     )
 }
