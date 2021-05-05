@@ -1,6 +1,6 @@
 import React from 'react'
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import { getFocusedRouteNameFromRoute, NavigationContainer, useNavigation } from '@react-navigation/native';
 import Room from '../screens/Room';
 import Status from '../screens/Status';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -12,6 +12,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { Avatar } from 'react-native-elements';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import Search from '../screens/Search';
+import ListMessage from '../screens/ListMessage';
 
 
 // OPRIONS OF EACH SCREEN  
@@ -27,10 +28,9 @@ const RoomScreenCustomizeOptions = (route, navigation) => {
         ),
         headerTitle: () => (
             <View>
-                <Text style={{ fontWeight: "600", fontSize: 18 }}>{route.name === "Rooms" && "Rooms"}</Text>
+                <Text style={{ fontWeight: "600", fontSize: 18 }}>{getHeaderTitle(route)}</Text>
             </View>
         ),
-
         headerRight: () => (
             <View style={{ flexDirection: "row" }}>
                 <TouchableOpacity onPress={() => handleClickSearch()} style={{ marginTop: 7 }}>
@@ -38,7 +38,7 @@ const RoomScreenCustomizeOptions = (route, navigation) => {
                 </TouchableOpacity>
                 <Avatar
                     rounded
-                    onPress={() => {}}
+                    onPress={() => { }}
                     source={{
                         uri:
                             'https://s3.amazonaws.com/uifaces/faces/twitter/ladylexy/128.jpg',
@@ -86,9 +86,22 @@ const MessageScreenCustomizeOptions = (route, navigation) => {
 
 // ====================================================
 
+function getHeaderTitle(route) {
+    const routerName = getFocusedRouteNameFromRoute(route) ?? "Crow Message"
+    switch (routerName) {
+        case "Room":
+            return "Room"
+        case "Messages":
+            return "Messages"
+        default:
+            return "Messages"
+    }
+
+}
+
 
 const Tab = createBottomTabNavigator()
-function TabNavigation() {
+function TabNavigation({ navigation, route }) {
     return (
         <Tab.Navigator screenOptions={({ route }) => ({
             tabBarIcon: ({ focused, color, size }) => {
@@ -96,9 +109,8 @@ function TabNavigation() {
                     return <Icon name="people-circle-outline" size={size} color={color} />
                 } else if (route.name == "Status") {
                     return <Icon name="ios-information-circle" size={size} color={color} />
-                } else if (route.name == "Message") {
+                } else if (route.name == "Messages") {
                     return <Icon name="chatbubbles-outline" size={size} color={color} />
-
                 }
             }
 
@@ -107,6 +119,7 @@ function TabNavigation() {
             inactiveTintColor: BUTTON_ICON.INACTIVE,
         }}>
             {/* <Tab.Screen name="Message" component={Message} /> */}
+            <Tab.Screen name="Messages" component={ListMessage} />
             <Tab.Screen name="Room" component={Room} options={{}} />
             <Tab.Screen name="Status" component={Status} />
         </Tab.Navigator>
@@ -119,7 +132,7 @@ const Stack = createStackNavigator()
 function Chat({ navigation }) {
     return (
         <Stack.Navigator>
-            <Stack.Screen name='Rooms' component={TabNavigation} options={({ route }) => RoomScreenCustomizeOptions(route, navigation)}></Stack.Screen>
+            <Stack.Screen name='Crow' component={TabNavigation} options={({ route }) => RoomScreenCustomizeOptions(route, navigation)}></Stack.Screen>
             <Stack.Screen name="Search" component={Search} options={({ route }) => SearchScreenCustomizeOptions(navigation)}></Stack.Screen>
             <Stack.Screen name="Message" component={Message} options={({ route }) => MessageScreenCustomizeOptions(route, navigation)}></Stack.Screen>
         </Stack.Navigator>
