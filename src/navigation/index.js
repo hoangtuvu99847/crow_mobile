@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { getFocusedRouteNameFromRoute, NavigationContainer, useNavigation } from '@react-navigation/native';
 import Room from '../screens/Room';
@@ -8,11 +8,13 @@ import Message from '../screens/Message';
 import { BUTTON_ICON } from '../../utils/colors';
 import { createStackNavigator } from "@react-navigation/stack";
 import { Button } from 'react-native-elements/dist/buttons/Button';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Avatar } from 'react-native-elements';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import Search from '../screens/Search';
 import ListMessage from '../screens/ListMessage';
+import socket from '../../socket';
+import { ICON_SIZE } from '../../utils/size';
 
 
 // OPRIONS OF EACH SCREEN  
@@ -22,19 +24,19 @@ const RoomScreenCustomizeOptions = (route, navigation) => {
     const handleClickSearch = () => { navigation.navigate('Search') }
     return {
         headerLeft: () => (
-            <TouchableOpacity style={{ marginTop: 5, marginHorizontal: 10 }} onPress={() => handleClickMenu()}>
-                <Icon name='menu' size={20} style={{ marginHorizontal: 6 }} />
+            <TouchableOpacity style={styles.menuIcon} onPress={() => handleClickMenu()}>
+                <Icon name='menu' size={ICON_SIZE.DEFAULT} style={styles.iconInMenu} />
             </TouchableOpacity>
         ),
         headerTitle: () => (
             <View>
-                <Text style={{ fontWeight: "600", fontSize: 18 }}>{getHeaderTitle(route)}</Text>
+                <Text style={styles.title}>{getHeaderTitle(route)}</Text>
             </View>
         ),
         headerRight: () => (
             <View style={{ flexDirection: "row" }}>
                 <TouchableOpacity onPress={() => handleClickSearch()} style={{ marginTop: 7 }}>
-                    <Icon name='search' size={20} />
+                    <Icon name='search' size={ICON_SIZE.DEFAULT} />
                 </TouchableOpacity>
                 <Avatar
                     rounded
@@ -43,7 +45,7 @@ const RoomScreenCustomizeOptions = (route, navigation) => {
                         uri:
                             'https://s3.amazonaws.com/uifaces/faces/twitter/ladylexy/128.jpg',
                     }}
-                    containerStyle={{ marginHorizontal: 16 }}
+                    containerStyle={styles.avatarContainer}
                 />
             </View >
         )
@@ -53,9 +55,7 @@ const RoomScreenCustomizeOptions = (route, navigation) => {
 const SearchScreenCustomizeOptions = (route, navigation) => {
     return {
         headerTitle: () => (
-            <View style={{ marginHorizontal: 0 }}>
-                <Text style={{ fontWeight: "600", fontSize: 18 }}>Search</Text>
-            </View>
+            <Text style={styles.title}>Search</Text>
         ),
 
     }
@@ -64,18 +64,18 @@ const MessageScreenCustomizeOptions = (route, navigation) => {
     const { roomName } = route.params
     return {
         headerTitle: () => (
-            <View style={{ marginHorizontal: 0 }}>
-                <Text style={{ fontWeight: "600", fontSize: 18 }}>{roomName}</Text>
+            <View>
+                <Text style={styles.title}>{roomName}</Text>
                 <View style={{ flexDirection: 'row' }}>
-                    {/* <Icon name="ellipse" size={12} color={'green'}><Text>50/50 users</Text></Icon> */}
-                    <Icon name="ellipse" style={{ marginTop: 2, marginRight: 4 }} size={12} color={'green'}></Icon><Text style={{ fontSize: 12 }}>1 people</Text>
+                    <Icon name="ellipse" style={styles.onlineIcon} size={ICON_SIZE.ONLINE} color={'green'}></Icon>
+                    <Text style={styles.onlinePeople}>1 people</Text>
                 </View>
             </View>
         ),
         headerRight: () => (
-            <View style={{ flexDirection: "row", marginHorizontal: 6 }}>
+            <View style={styles.seacrhIcon}>
                 <Button onPress={() => handleClickSearch()} icon={
-                    <Icon name='search' size={20} />
+                    <Icon name='search' size={ICON_SIZE.DEFAULT} />
                 }>
                 </Button>
             </View>
@@ -101,7 +101,10 @@ function getHeaderTitle(route) {
 
 
 const Tab = createBottomTabNavigator()
-function TabNavigation({ navigation, route }) {
+function ChatMain({ navigation, route }) {
+    useEffect(() => {
+        socket.connect()
+    }, [])
     return (
         <Tab.Navigator screenOptions={({ route }) => ({
             tabBarIcon: ({ focused, color, size }) => {
@@ -118,7 +121,6 @@ function TabNavigation({ navigation, route }) {
             activeTintColor: BUTTON_ICON.ACTIVE,
             inactiveTintColor: BUTTON_ICON.INACTIVE,
         }}>
-            {/* <Tab.Screen name="Message" component={Message} /> */}
             <Tab.Screen name="Messages" component={ListMessage} />
             <Tab.Screen name="Room" component={Room} options={{}} />
             <Tab.Screen name="Status" component={Status} />
@@ -132,7 +134,7 @@ const Stack = createStackNavigator()
 function Chat({ navigation }) {
     return (
         <Stack.Navigator>
-            <Stack.Screen name='Crow' component={TabNavigation} options={({ route }) => RoomScreenCustomizeOptions(route, navigation)}></Stack.Screen>
+            <Stack.Screen name='Main' component={ChatMain} options={({ route }) => RoomScreenCustomizeOptions(route, navigation)}></Stack.Screen>
             <Stack.Screen name="Search" component={Search} options={({ route }) => SearchScreenCustomizeOptions(navigation)}></Stack.Screen>
             <Stack.Screen name="Message" component={Message} options={({ route }) => MessageScreenCustomizeOptions(route, navigation)}></Stack.Screen>
         </Stack.Navigator>
@@ -148,12 +150,6 @@ function Social() {
     )
 }
 
-function SearchScree() {
-    return (
-        <Stack.Screen name="Search" component={Search}></Stack.Screen>
-    )
-}
-
 
 const NavDrawer = createDrawerNavigator()
 export default function RootNavigation() {
@@ -166,3 +162,32 @@ export default function RootNavigation() {
         </NavigationContainer>
     )
 }
+
+
+const styles = StyleSheet.create({
+    title: {
+        fontWeight: "600",
+        fontSize: 18
+    },
+    menuIcon: {
+        marginTop: 5,
+        marginHorizontal: 10
+    },
+    iconInMenu: {
+        marginHorizontal: 6
+    },
+    avatarContainer: {
+        marginHorizontal: 16
+    },
+    onlineIcon: {
+        marginTop: 2,
+        marginRight: 4
+    },
+    onlinePeople: {
+        fontSize: 12
+    },
+    seacrhIcon: {
+        flexDirection: "row",
+        marginHorizontal: 6
+    }
+})

@@ -1,7 +1,10 @@
+import axios from 'axios';
 import React, { useEffect } from 'react'
 import { StyleSheet } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
-import NavContainer from "./src/navigation/nav";
+import NavigationContainer from "./src/navigation/index";
+
+axios.defaults.baseURL = "http://192.168.241.208:5000/"
 
 export default function App() {
   useEffect(() => {
@@ -12,11 +15,8 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      {/* <MyHeader /> */}
-      {/* <Drawer /> */}
-      <NavContainer />
+      <NavigationContainer />
     </SafeAreaProvider>
-
   )
 }
 

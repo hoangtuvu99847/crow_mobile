@@ -2,7 +2,6 @@ import React, { useEffect } from 'react'
 import { View, Text, StyleSheet, TextInput, ScrollView } from 'react-native'
 import { Avatar, Input, ListItem, Badge } from 'react-native-elements'
 import Icon from 'react-native-vector-icons/Ionicons'
-import socket from '../../socket'
 import { BUTTON_ICON } from '../../utils/colors'
 
 
@@ -68,8 +67,6 @@ const list = [
 
 export default function ListMessage() {
     useEffect(() => {
-        socket.connect()
-        console.log('use');
     }, [])
     return (
         <View style={styles.container}>
