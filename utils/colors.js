@@ -4,7 +4,8 @@ export const COLORS = {
     SECONDARY: '',
 }
 export const TEXT = {
-    PRIMARY: '#212121'
+    PRIMARY: '#212121',
+    WHITE: "#FAFAFA"
 }
 export const ICON = {
     PRIMARY: '#212121'

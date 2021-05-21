@@ -1,33 +1,20 @@
 import axios from 'axios';
 import React, { useEffect } from 'react'
-import { StyleSheet } from 'react-native'
-import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { Provider as PaperProvider } from "react-native-paper";
 import NavigationContainer from "./src/navigation/index";
+import { Provider } from 'react-redux';
+import store from "./src/redux/index";
+import {initialize} from './src/initialize';
 
-axios.defaults.baseURL = "http://192.168.241.208:5000/"
 
+initialize()
 export default function App() {
-  useEffect(() => {
-    console.log('User Effect: ', { obj: 'Hello' })
-    return () => {
-    }
-  }, [])
-
   return (
-    <SafeAreaProvider>
-      <NavigationContainer />
-    </SafeAreaProvider>
+    <Provider store={store}>
+      <PaperProvider>
+        <NavigationContainer />
+      </PaperProvider>
+    </Provider>
+
   )
 }
-
-
-
-const styles = StyleSheet.create({
-  headerText: {
-    fontSize: 26,
-    fontWeight: 'bold'
-  },
-  icon: {
-    marginTop: 10
-  }
-})

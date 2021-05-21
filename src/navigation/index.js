@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { getFocusedRouteNameFromRoute, NavigationContainer, useNavigation } from '@react-navigation/native';
 import Room from '../screens/Room';
@@ -15,6 +15,10 @@ import Search from '../screens/Search';
 import ListMessage from '../screens/ListMessage';
 import socket from '../../socket';
 import { ICON_SIZE } from '../../utils/size';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Login from '../authentication/Login';
+import { useDispatch, useSelector } from 'react-redux';
+import { actionLogin, actionLogout } from '../redux/action';
 
 
 // OPRIONS OF EACH SCREEN  
@@ -22,6 +26,17 @@ import { ICON_SIZE } from '../../utils/size';
 const RoomScreenCustomizeOptions = (route, navigation) => {
     const handleClickMenu = () => { navigation.openDrawer() }
     const handleClickSearch = () => { navigation.navigate('Search') }
+    const dispatch = useDispatch()
+
+    const removeUser = async () => {
+        try {
+            await AsyncStorage.removeItem('@user')
+            dispatch({ type: 'LOGOUT' })
+        } catch (e) {
+            // remove error
+        }
+        console.log('Done.')
+    }
     return {
         headerLeft: () => (
             <TouchableOpacity style={styles.menuIcon} onPress={() => handleClickMenu()}>
@@ -40,7 +55,7 @@ const RoomScreenCustomizeOptions = (route, navigation) => {
                 </TouchableOpacity>
                 <Avatar
                     rounded
-                    onPress={() => { }}
+                    onPress={removeUser}
                     source={{
                         uri:
                             'https://s3.amazonaws.com/uifaces/faces/twitter/ladylexy/128.jpg',
@@ -104,6 +119,10 @@ const Tab = createBottomTabNavigator()
 function ChatMain({ navigation, route }) {
     useEffect(() => {
         socket.connect()
+        return () => {
+            socket.disconnect()
+            console.log('Disconnect socket');
+        }
     }, [])
     return (
         <Tab.Navigator screenOptions={({ route }) => ({
@@ -152,13 +171,37 @@ function Social() {
 
 
 const NavDrawer = createDrawerNavigator()
+function MainNavigation() {
+    return (
+        <NavDrawer.Navigator initialRouteName="Chat">
+            <NavDrawer.Screen name="Home" component={Social}></NavDrawer.Screen>
+            <NavDrawer.Screen name="Chat" component={Chat}></NavDrawer.Screen>
+        </NavDrawer.Navigator>
+    )
+}
+
 export default function RootNavigation() {
+    const isLogin = useSelector(state => state.isLogin)
+    const dispatch = useDispatch()
+    const getUser = async () => {
+        try {
+            const value = await AsyncStorage.getItem('@user')
+            value !== null ? dispatch(actionLogin()) : dispatch(actionLogout())
+        } catch (e) {
+            console.log('ERROR: getUser :: -> ', e)
+        }
+    }
+    useEffect(() => {
+        getUser()
+    }, [isLogin])
     return (
         <NavigationContainer>
-            <NavDrawer.Navigator initialRouteName="Chat">
-                <NavDrawer.Screen name="Home" component={Social}></NavDrawer.Screen>
-                <NavDrawer.Screen name="Chat" component={Chat}></NavDrawer.Screen>
-            </NavDrawer.Navigator>
+            <Stack.Navigator screenOptions={{ headerShown: null }}>
+                {
+                    isLogin ? <Stack.Screen name="App" component={MainNavigation} />
+                        : <Stack.Screen name="Login" component={Login} />
+                }
+            </Stack.Navigator>
         </NavigationContainer>
     )
 }

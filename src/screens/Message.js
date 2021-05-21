@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
     StyleSheet,
     Text,
@@ -13,10 +13,13 @@ import {
 } from 'react-native';
 import { Avatar, Divider, Input } from 'react-native-elements';
 import Icon from "react-native-vector-icons/Ionicons";
+import socket from '../../socket';
 import { BUTTON_ICON, COLORS, ICON } from '../../utils/colors';
 
-export default function Message({route, navigation}) {
-    // console.log('ROUTE: ', route);
+export default function Message({ route, navigation }) {
+    const { roomName } = route.params
+    const [messageText, setMessageText] = useState('')
+    const [message, setMessage] = useState(listData)
     const listData = [
         { id: 1, date: "9:50 am", type: 'in', message: "Lorem ipsum dolor sit amet" },
         { id: 2, date: "9:50 am", type: 'out', message: "Lorem ipsum dolor sit amet" },
@@ -28,10 +31,34 @@ export default function Message({route, navigation}) {
         { id: 8, date: "9:50 am", type: 'in', message: "Lorem ipsum dolor sit a met" },
         { id: 9, date: "9:50 am", type: 'in', message: "Lorem ipsum dolor sit a met" },
     ]
-    const [message, setMessage] = useState(listData)
+    const joinRoom = () => {
+        console.log('JOIN ROOM')
+        socket.emit('join', { room: roomName }, (response) => {
+            console.log('==> RESULT: ', response.status);
+        })
+    }
+    const leaveRoom = () => {
+        console.log('LEAVE ROOM');
+        socket.emit('leave', { room: roomName })
+    }
+    const send = () => {
+        const data = {
+            room: roomName,
+            text: messageText
+        }
+        socket.emit('chat', data)
+        setMessageText('')
+
+    }
+    useEffect(() => {
+        joinRoom()
+        return () => {
+            leaveRoom()
+        }
+    }, [])
     const renderDate = (date, isMine) => {
         return (
-            <Text style={[styles.time, isMine ? { color: "#ffffff" } : {alignSelf: "flex-end", color: "#222"}]}>
+            <Text style={[styles.time, isMine ? { color: "#ffffff" } : { alignSelf: "flex-end", color: "#222" }]}>
                 {date}
             </Text>
         );
@@ -39,7 +66,7 @@ export default function Message({route, navigation}) {
     const renderName = (name, isMine) => {
         return (
             <View style={{ marginVertical: 0 }}>
-                <Text style={{  textAlign: isMine ? "right" : "left", fontSize: 12, fontWeight: "bold", color: isMine ? "#ffffff" : "#222" }}>{name}</Text>
+                <Text style={{ textAlign: isMine ? "right" : "left", fontSize: 12, fontWeight: "bold", color: isMine ? "#ffffff" : "#222" }}>{name}</Text>
             </View>
         )
     }
@@ -74,7 +101,8 @@ export default function Message({route, navigation}) {
                     <TextInput style={styles.inputs}
                         placeholder="Write a message..."
                         underlineColorAndroid='transparent'
-                        onChangeText={(name_address) => setMessage({ name_address })} />
+                        onChangeText={(msg) => setMessageText(msg)}
+                        value={messageText} />
                 </View>
 
                 <View style={{ flexDirection: 'row' }}>
@@ -87,7 +115,7 @@ export default function Message({route, navigation}) {
                         </TouchableOpacity>
                     </View>
                     <View style={styles.btnSendContainer}>
-                        <TouchableOpacity style={styles.btnSend}>
+                        <TouchableOpacity style={styles.btnSend} onPress={send}>
                             <Icon name='send' size={16} color="#fff"></Icon>
                         </TouchableOpacity>
                     </View>

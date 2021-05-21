@@ -7,7 +7,7 @@ import { BUTTON_ICON, ICON } from '../../utils/colors';
 
 export default function Room({ navigation }) {
     const [isLoading, setIsLoading] = useState(false)
-    const [rooms, setRoom] = useState([])
+    const [rooms, setRooms] = useState([])
 
     useEffect(() => {
         getListRoom()
@@ -18,7 +18,7 @@ export default function Room({ navigation }) {
         setIsLoading(true)
         try {
             const response = await requestGetListRoom();
-            setRoom(response.data)
+            setRooms(response.data)
         } catch (error) {
             console.log("ERROR: getListRoom", error);
         } finally {
@@ -42,8 +42,7 @@ export default function Room({ navigation }) {
             <View>
                 {
                     rooms.map((l, i) => (
-                        <ListItem key={i} bottomDivider onPress={() => joinRoom(l)}>
-                            <Ionicons name='people-circle-outline' size={30} />
+                        <ListItem key={i} bottomDivider onPress={() => navigation.navigate('Message', { roomName: l.name })}>
                             <ListItem.Content>
                                 <ListItem.Title>{l.name}</ListItem.Title>
                             </ListItem.Content>
