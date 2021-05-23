@@ -1,8 +1,19 @@
-import { LOGIN, LOGOUT } from "./actionType"
+import { LOGIN, LOGOUT, SET_CURRENT_USER_APP } from "./actionType";
 
-export const actionLogin = () => ({
+export const actionLogin = (payload) => {
+  return {
     type: LOGIN,
-})
-export const actionLogout = () => ({
+    payload: payload,
+  };
+};
+export const actionLogout = () => {
+  return {
     type: LOGOUT,
-})
+  };
+};
+export const actionSetCurrentUser = (payload) => {
+  return {
+    type: SET_CURRENT_USER_APP,
+    payload: payload,
+  };
+};
