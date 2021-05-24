@@ -221,20 +221,23 @@ export default function RootNavigation() {
     try {
       const value = await AsyncStorage.getItem("@user");
       value !== null ? dispatch(actionLogin()) : dispatch(actionLogout());
-      return value
+      return value;
     } catch (e) {
       console.log("ERROR: getUser :: -> ", e);
     }
   };
   const handleSaveUser = (user) => {
-    const currentUser = JSON.parse(user)
-    if (currentUser.usr_obj !== null){
-      dispatch(actionSetCurrentUser(currentUser.usr_obj))
+    const currentUser = JSON.parse(user);
+    console.log('currentUser: ', currentUser);
+    if (currentUser !== null) {
+      const userObject = currentUser['usr_obj']
+      dispatch(actionSetCurrentUser(userObject));
     }
-  }
+  };
   useEffect(() => {
+    console.log('START');
     getUser().then(r => {
-      handleSaveUser(r)
+      handleSaveUser(r);
     });
   }, []);
   return (

@@ -11,6 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useDispatch} from 'react-redux';
 import {actionLogin} from '../redux/action';
 import {requestLogin} from '../services/auth.service';
+import socket from "../../socket";
 
 export default function Login({navigation}) {
   const [username, setUsername] = useState('');

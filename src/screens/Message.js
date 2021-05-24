@@ -35,13 +35,11 @@ export default function Message({ route, navigation }) {
   ];
   const joinRoom = () => {
     console.log("JOIN ROOM");
-    socket.emit("join", { room: roomName }, (response) => {
-      console.log("==> RESULT: ", response.status);
-    });
+    socket.emit("join", { room: roomName, user: currentUser });
   };
   const leaveRoom = () => {
     console.log("LEAVE ROOM");
-    socket.emit("leave", { room: roomName });
+    socket.emit("leave", { room: roomName, user: currentUser });
   };
   const send = () => {
     console.log("current: ", currentUser);
@@ -53,10 +51,21 @@ export default function Message({ route, navigation }) {
     setMessageText("");
 
   };
+  const subscribeSocketEvent = () => {
+    socket.on("join", (data) => {
+      console.log("JOIN: ", data);
+    });
+  };
+  const cleanScreen = () => {
+    leaveRoom();
+    socket.off("join");
+    socket.off("leave");
+  };
   useEffect(() => {
+    subscribeSocketEvent();
     joinRoom();
     return () => {
-      leaveRoom();
+      cleanScreen();
     };
   }, []);
   const renderDate = (date, isMine) => {
