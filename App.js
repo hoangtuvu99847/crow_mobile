@@ -7,6 +7,7 @@ import store from "./src/redux/index";
 import {initialize} from './src/initialize';
 
 
+
 initialize()
 export default function App() {
   return (

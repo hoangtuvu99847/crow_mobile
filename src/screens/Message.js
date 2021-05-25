@@ -16,23 +16,14 @@ import Icon from "react-native-vector-icons/Ionicons";
 import socket from "../../socket";
 import { BUTTON_ICON, COLORS, ICON } from "../../utils/colors";
 import { useSelector } from "react-redux";
+import ChatService from "../services/chat.service";
+import { getTimeNow, getTimeRelative } from "../../utils/timeMoment";
 
 export default function Message({ route, navigation }) {
   const { roomName } = route.params;
   const [messageText, setMessageText] = useState("");
-  const [message, setMessage] = useState(listData);
+  const [messages, setMessages] = useState([]);
   const currentUser = useSelector(state => state.user);
-  const listData = [
-    { id: 1, date: "9:50 am", type: "in", message: "Lorem ipsum dolor sit amet" },
-    { id: 2, date: "9:50 am", type: "out", message: "Lorem ipsum dolor sit amet" },
-    { id: 3, date: "9:50 am", type: "in", message: "Lorem ipsum dolor sit a met" },
-    { id: 4, date: "9:50 am", type: "in", message: "Lorem ipsum dolor sit a met" },
-    { id: 5, date: "9:50 am", type: "out", message: "Lorem ipsum dolor sit a met" },
-    { id: 6, date: "9:50 am", type: "out", message: "Lorem ipsum dolor sit a met" },
-    { id: 7, date: "9:50 am", type: "in", message: "Lorem ipsum dolor sit a met" },
-    { id: 8, date: "9:50 am", type: "in", message: "Lorem ipsum dolor sit a met" },
-    { id: 9, date: "9:50 am", type: "in", message: "Lorem ipsum dolor sit a met" },
-  ];
   const joinRoom = () => {
     console.log("JOIN ROOM");
     socket.emit("join", { room: roomName, user: currentUser });
@@ -42,24 +33,42 @@ export default function Message({ route, navigation }) {
     socket.emit("leave", { room: roomName, user: currentUser });
   };
   const send = () => {
-    console.log("current: ", currentUser);
     const data = {
       room: roomName,
       text: messageText,
+      user: currentUser
     };
-    socket.emit("chat", data);
-    setMessageText("");
+    return ChatService.saveMessage(data)
+      .then(response => {
+        console.log("response: ", response.data);
+        setMessageText("");
+      })
+      .catch(err => console.log(err));
+  };
 
+  const getListMessage = () => {
+    return ChatService.list()
+  }
+  const handleShowMessage = (data) => {
+    const { username } = currentUser;
+    username === data["sender"] ? data["type"] = "out" : data["type"] = "in";
+    setMessages((messages) => [...messages, data]);
   };
   const subscribeSocketEvent = () => {
     socket.on("join", (data) => {
       console.log("JOIN: ", data);
     });
+    socket.on("chat", (data) => {
+      handleShowMessage(data);
+    });
   };
+
   const cleanScreen = () => {
     leaveRoom();
     socket.off("join");
     socket.off("leave");
+    socket.off("chat");
+
   };
   useEffect(() => {
     subscribeSocketEvent();
@@ -90,9 +99,11 @@ export default function Message({ route, navigation }) {
   return (
     <View style={styles.container}>
       <FlatList style={styles.list}
-                data={message}
-                keyExtractor={(item) => {
-                  return item.id;
+                inverted={true}
+                contentContainerStyle={{ flexDirection: 'column-reverse' }}
+                data={messages}
+                keyExtractor={(item, index) => {
+                  return index;
                 }}
                 renderItem={(message) => {
                   const item = message.item;
@@ -103,16 +114,16 @@ export default function Message({ route, navigation }) {
                       <View style={[styles.item, itemStyle]}>
                         {/* {!inMessage && renderDate(item.date, true)} */}
                         <View style={[styles.balloon]}>
-                          {renderName("Vu KT", !inMessage)}
-                          <Text style={{ color: !inMessage && "#ffffff" }}>{item.message}</Text>
-                          {inMessage ? renderDate(item.date, false) : renderDate(item.date, true)}
+                          {renderName(item.sender, !inMessage)}
+                          <Text style={{ color: !inMessage && "#ffffff" }}>{item.msg}</Text>
+                          {inMessage ? renderDate(item.time_created, false) : renderDate(item.time_created, true)}
                         </View>
                         {/* {inMessage && renderDate(item.date, false)} */}
                       </View>
                     </View>
                   );
                 }} />
-      <Divider></Divider>
+      <Divider />
       <View style={styles.footer}>
         <View style={styles.inputContainer}>
           <TextInput style={styles.inputs}
@@ -133,7 +144,7 @@ export default function Message({ route, navigation }) {
           </View>
           <View style={styles.btnSendContainer}>
             <TouchableOpacity style={styles.btnSend} onPress={send}>
-              <Icon name="send" size={16} color="#fff"></Icon>
+              <Icon name="send" size={16} color="#fff" />
             </TouchableOpacity>
           </View>
         </View>

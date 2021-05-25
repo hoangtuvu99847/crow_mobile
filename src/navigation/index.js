@@ -228,7 +228,6 @@ export default function RootNavigation() {
   };
   const handleSaveUser = (user) => {
     const currentUser = JSON.parse(user);
-    console.log('currentUser: ', currentUser);
     if (currentUser !== null) {
       const userObject = currentUser['usr_obj']
       dispatch(actionSetCurrentUser(userObject));
