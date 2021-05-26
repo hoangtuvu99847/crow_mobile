@@ -23,6 +23,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Login from "../authentication/Login";
 import { useDispatch, useSelector } from "react-redux";
 import { actionLogin, actionLogout, actionSetCurrentUser } from "../redux/action";
+import StorageApp from '../../utils/storage'
 
 const RoomScreenCustomizeOptions = (route, navigation) => {
   const handleClickMenu = () => {
@@ -219,7 +220,7 @@ export default function RootNavigation() {
   const dispatch = useDispatch();
   const getUser = async () => {
     try {
-      const value = await AsyncStorage.getItem("@user");
+      const value = await StorageApp.getValue('user')
       value !== null ? dispatch(actionLogin()) : dispatch(actionLogout());
       return value;
     } catch (e) {
@@ -227,9 +228,8 @@ export default function RootNavigation() {
     }
   };
   const handleSaveUser = (user) => {
-    const currentUser = JSON.parse(user);
-    if (currentUser !== null) {
-      const userObject = currentUser['usr_obj']
+    if (user !== null) {
+      const userObject = user['usr_obj']
       dispatch(actionSetCurrentUser(userObject));
     }
   };

@@ -11,7 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useDispatch} from 'react-redux';
 import {actionLogin} from '../redux/action';
 import {requestLogin} from '../services/auth.service';
-import socket from "../../socket";
+import StorageApp from '../../utils/storage'
 
 export default function Login({navigation}) {
   const [username, setUsername] = useState('');
@@ -26,9 +26,7 @@ export default function Login({navigation}) {
 
   const storeUser = async user => {
     try {
-      const jsonValue = JSON.stringify(user);
-
-      return await AsyncStorage.setItem('@user', jsonValue);
+      return await StorageApp.setValue('user', user);
     } catch (error) {
       console.log('ERROR: storeUser :: -> ', error);
     }

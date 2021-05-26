@@ -9,57 +9,75 @@ import {
   ScrollView,
   TextInput,
   FlatList,
-  Button,
+  Button, ActivityIndicator,
 } from "react-native";
 import { Avatar, Divider, Input } from "react-native-elements";
 import Icon from "react-native-vector-icons/Ionicons";
 import socket from "../../socket";
-import { BUTTON_ICON, COLORS, ICON } from "../../utils/colors";
+import { BUTTON_ICON, COLORS, ICON, TEXT } from "../../utils/colors";
 import { useSelector } from "react-redux";
 import ChatService from "../services/chat.service";
-import { getTimeNow, getTimeRelative } from "../../utils/timeMoment";
 
 export default function Message({ route, navigation }) {
   const { roomName } = route.params;
   const [messageText, setMessageText] = useState("");
   const [messages, setMessages] = useState([]);
+  const [isLoadingButtonSend, setLoadingButtonSend] = useState(false);
   const currentUser = useSelector(state => state.user);
   const joinRoom = () => {
-    console.log("JOIN ROOM");
     socket.emit("join", { room: roomName, user: currentUser });
+    console.log("JOIN ROOM");
   };
   const leaveRoom = () => {
-    console.log("LEAVE ROOM");
     socket.emit("leave", { room: roomName, user: currentUser });
+    console.log("LEAVE ROOM");
   };
   const send = () => {
+    console.log("currentUser: ", currentUser);
+    setLoadingButtonSend(true);
     const data = {
       room: roomName,
       text: messageText,
-      user: currentUser
+      user: currentUser,
     };
     return ChatService.saveMessage(data)
       .then(response => {
         console.log("response: ", response.data);
         setMessageText("");
       })
-      .catch(err => console.log(err));
+      .catch(err => console.log(err))
+      .finally(() => setLoadingButtonSend(false));
   };
 
-  const getListMessage = () => {
-    return ChatService.list()
-  }
-  const handleShowMessage = (data) => {
+  const getListMessageByRoom = async () => {
+    console.log("roomName: ", roomName);
+    return ChatService.list_message_by_room(roomName)
+      .then(response => response.data)
+      .then(messages => handleShowMessage(messages))
+      .catch(err => console.log("err: ", err));
+  };
+  const handleShowMessage = (messages) => {
+    const { username } = currentUser;
+    const listMessage = messages.map(item => {
+      (item.sender === username) ? item.type = "out" : item.type = "in";
+      return item;
+    });
+    setMessages((messages) => [...messages, ...listMessage]);
+  };
+  const pushMessage = (data) => {
     const { username } = currentUser;
     username === data["sender"] ? data["type"] = "out" : data["type"] = "in";
     setMessages((messages) => [...messages, data]);
   };
   const subscribeSocketEvent = () => {
     socket.on("join", (data) => {
-      console.log("JOIN: ", data);
+      console.log(" ===> JOIN LISTENER: ", data);
     });
     socket.on("chat", (data) => {
-      handleShowMessage(data);
+      pushMessage(data);
+    });
+    socket.on("user_in_room", (data) => {
+      console.log("user_in_room: ", data);
     });
   };
 
@@ -68,9 +86,10 @@ export default function Message({ route, navigation }) {
     socket.off("join");
     socket.off("leave");
     socket.off("chat");
-
   };
   useEffect(() => {
+    getListMessageByRoom().then(() => {
+    });
     subscribeSocketEvent();
     joinRoom();
     return () => {
@@ -87,12 +106,14 @@ export default function Message({ route, navigation }) {
   const renderName = (name, isMine) => {
     return (
       <View style={{ marginVertical: 0 }}>
-        <Text style={{
-          textAlign: isMine ? "right" : "left",
-          fontSize: 12,
-          fontWeight: "bold",
-          color: isMine ? "#ffffff" : "#222",
-        }}>{name}</Text>
+        {
+          currentUser.username !== name && <Text style={{
+            textAlign: isMine ? "right" : "left",
+            fontSize: 12,
+            fontWeight: "bold",
+            color: isMine ? "#ffffff" : "#222",
+          }}>{name}</Text>
+        }
       </View>
     );
   };
@@ -100,7 +121,7 @@ export default function Message({ route, navigation }) {
     <View style={styles.container}>
       <FlatList style={styles.list}
                 inverted={true}
-                contentContainerStyle={{ flexDirection: 'column-reverse' }}
+                contentContainerStyle={{ flexDirection: "column-reverse" }}
                 data={messages}
                 keyExtractor={(item, index) => {
                   return index;
@@ -144,7 +165,10 @@ export default function Message({ route, navigation }) {
           </View>
           <View style={styles.btnSendContainer}>
             <TouchableOpacity style={styles.btnSend} onPress={send}>
-              <Icon name="send" size={16} color="#fff" />
+              {
+                isLoadingButtonSend ? <ActivityIndicator color={TEXT.WHITE} size={"small"} />
+                  : <Icon name="send" size={16} color="#fff" />
+              }
             </TouchableOpacity>
           </View>
         </View>
