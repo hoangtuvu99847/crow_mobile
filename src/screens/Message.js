@@ -11,25 +11,30 @@ import {
   FlatList,
   Button, ActivityIndicator,
 } from "react-native";
-import { Avatar, Divider, Input } from "react-native-elements";
+import { Avatar, Divider, Header, Input } from "react-native-elements";
 import Icon from "react-native-vector-icons/Ionicons";
 import socket from "../../socket";
 import { BUTTON_ICON, COLORS, ICON, TEXT } from "../../utils/colors";
 import { useSelector } from "react-redux";
 import ChatService from "../services/chat.service";
+import { renderHeaderCenter } from "../base/header/messageHeader";
+import { renderButtonBack, renderButtonSearch } from "../base/header";
 
 export default function Message({ route, navigation }) {
   const { roomName } = route.params;
+  const { listRoom } = route.params;
+
   const [messageText, setMessageText] = useState("");
   const [messages, setMessages] = useState([]);
   const [isLoadingButtonSend, setLoadingButtonSend] = useState(false);
+  const [numberUserOnlineInRoom, setNumberUserOnlineInRoom] = useState();
   const currentUser = useSelector(state => state.user);
   const joinRoom = () => {
-    socket.emit("join", { room: roomName, user: currentUser });
+    socket.emit("join", { room: roomName, user: currentUser }, listRoom);
     console.log("JOIN ROOM");
   };
   const leaveRoom = () => {
-    socket.emit("leave", { room: roomName, user: currentUser });
+    socket.emit("leave", { room: roomName, user: currentUser }, listRoom);
     console.log("LEAVE ROOM");
   };
   const send = () => {
@@ -41,16 +46,12 @@ export default function Message({ route, navigation }) {
       user: currentUser,
     };
     return ChatService.saveMessage(data)
-      .then(response => {
-        console.log("response: ", response.data);
-        setMessageText("");
-      })
+      .then(() => setMessageText(""))
       .catch(err => console.log(err))
       .finally(() => setLoadingButtonSend(false));
   };
 
   const getListMessageByRoom = async () => {
-    console.log("roomName: ", roomName);
     return ChatService.list_message_by_room(roomName)
       .then(response => response.data)
       .then(messages => handleShowMessage(messages))
@@ -71,13 +72,12 @@ export default function Message({ route, navigation }) {
   };
   const subscribeSocketEvent = () => {
     socket.on("join", (data) => {
-      console.log(" ===> JOIN LISTENER: ", data);
     });
     socket.on("chat", (data) => {
       pushMessage(data);
     });
     socket.on("user_in_room", (data) => {
-      console.log("user_in_room: ", data);
+      setNumberUserOnlineInRoom(data);
     });
   };
 
@@ -86,6 +86,7 @@ export default function Message({ route, navigation }) {
     socket.off("join");
     socket.off("leave");
     socket.off("chat");
+    socket.off("user_in_room");
   };
   useEffect(() => {
     getListMessageByRoom().then(() => {
@@ -117,8 +118,18 @@ export default function Message({ route, navigation }) {
       </View>
     );
   };
+
   return (
     <View style={styles.container}>
+      <Header
+        backgroundColor={COLORS.PRIMARY}
+        statusBarProps={{ barStyle: "light-content" }}
+        barStyle="light-content" // or directly
+        placement="left"
+        leftComponent={renderButtonBack({ navigation })}
+        centerComponent={renderHeaderCenter(roomName, numberUserOnlineInRoom)}
+        rightComponent={renderButtonSearch({ navigation })}
+      />
       <FlatList style={styles.list}
                 inverted={true}
                 contentContainerStyle={{ flexDirection: "column-reverse" }}

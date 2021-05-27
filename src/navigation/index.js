@@ -23,7 +23,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Login from "../authentication/Login";
 import { useDispatch, useSelector } from "react-redux";
 import { actionLogin, actionLogout, actionSetCurrentUser } from "../redux/action";
-import StorageApp from '../../utils/storage'
+import StorageApp from "../../utils/storage";
 
 const RoomScreenCustomizeOptions = (route, navigation) => {
   const handleClickMenu = () => {
@@ -175,11 +175,11 @@ const Stack = createStackNavigator();
 
 function Chat({ navigation }) {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{headerShown: false}}>
       <Stack.Screen
         name="Main"
         component={ChatMain}
-        options={({ route }) => RoomScreenCustomizeOptions(route, navigation)}
+        // options={({ route }) => RoomScreenCustomizeOptions(route, navigation)}
       />
       <Stack.Screen
         name="Search"
@@ -189,7 +189,7 @@ function Chat({ navigation }) {
       <Stack.Screen
         name="Message"
         component={Message}
-        options={({ route }) => MessageScreenCustomizeOptions(route, navigation)}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );
@@ -210,7 +210,7 @@ function MainNavigation() {
   return (
     <NavDrawer.Navigator initialRouteName="Chat">
       <NavDrawer.Screen name="Home" component={Social} />
-      <NavDrawer.Screen name="Chat" component={Chat} />
+      <NavDrawer.Screen name="Chat" component={Chat}/>
     </NavDrawer.Navigator>
   );
 }
@@ -220,7 +220,7 @@ export default function RootNavigation() {
   const dispatch = useDispatch();
   const getUser = async () => {
     try {
-      const value = await StorageApp.getValue('user')
+      const value = await StorageApp.getValue("user");
       value !== null ? dispatch(actionLogin()) : dispatch(actionLogout());
       return value;
     } catch (e) {
@@ -229,12 +229,12 @@ export default function RootNavigation() {
   };
   const handleSaveUser = (user) => {
     if (user !== null) {
-      const userObject = user['usr_obj']
+      const userObject = user["usr_obj"];
       dispatch(actionSetCurrentUser(userObject));
     }
   };
   useEffect(() => {
-    console.log('START');
+    console.log("START");
     getUser().then(r => {
       handleSaveUser(r);
     });
