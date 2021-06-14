@@ -6,7 +6,6 @@ import StorageApp from "../utils/storage";
 
 
 export function initialize() {
-  console.log("SERVER_HOST: ", SERVER_HOST);
   axios.defaults.baseURL = `http://${SERVER_HOST}:${SERVER_PORT}/`;
   axios.interceptors.response.use(null, (error) => {
     if (error.response.status === 401) {

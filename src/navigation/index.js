@@ -24,6 +24,7 @@ import Login from "../authentication/Login";
 import { useDispatch, useSelector } from "react-redux";
 import { actionLogin, actionLogout, actionSetCurrentUser } from "../redux/action";
 import StorageApp from "../../utils/storage";
+import ListUserRoom from "../screens/ListUserRoom";
 
 const RoomScreenCustomizeOptions = (route, navigation) => {
   const handleClickMenu = () => {
@@ -189,6 +190,11 @@ function Chat({ navigation }) {
       <Stack.Screen
         name="Message"
         component={Message}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ListUserRoom"
+        component={ListUserRoom}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

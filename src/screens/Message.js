@@ -127,7 +127,7 @@ export default function Message({ route, navigation }) {
         barStyle="light-content" // or directly
         placement="left"
         leftComponent={renderButtonBack({ navigation })}
-        centerComponent={renderHeaderCenter(roomName, numberUserOnlineInRoom)}
+        centerComponent={renderHeaderCenter({navigation} ,roomName, numberUserOnlineInRoom)}
         rightComponent={renderButtonSearch({ navigation })}
       />
       <FlatList style={styles.list}

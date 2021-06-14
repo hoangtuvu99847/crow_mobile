@@ -12,33 +12,18 @@ export default function Room({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   const [rooms, setRooms] = useState([]);
 
-  const handleCountUserEachRoom = (responseServerReceived, socketDataReceived) => {
-    console.log('================== CHANGED =====================');
-    // let result = [];
-    // rooms.map(item => {
-    //   Object.keys(socketDataReceived).includes(item.name) ?
-    //     item["numberUser"] = socketDataReceived[item.name].length
-    //     : item["numberUser"] = 0;
-    //   console.log("===> USER IN ROOM: ", item);
-    //   result.push(item);
-    // });
-    // setRooms(result);
-  };
-
   const subscribeSocketEvent = () => {
     socket.on("users_rooms", (data) => {
-      // handleCountUserEachRoom(rooms, data);
-      console.log('DTA: ', data);
-      setRooms(data)
+      setRooms(data);
     });
   };
   const clearScreen = () => {
-    // socket.off("users_rooms");
+    socket.off("users_rooms");
   };
 
   useEffect(() => {
     getListRoom()
-      .then((data) => socket.emit("users_rooms", data))
+      .then((data) => socket.emit("users_rooms", data));
     subscribeSocketEvent();
     return () => {
       clearScreen();
@@ -56,7 +41,7 @@ export default function Room({ navigation }) {
       .finally(() => setIsLoading(false));
   };
   const joinRoom = item => {
-    return navigation.navigate("Message", { roomName: item.name, listRoom: rooms  });
+    return navigation.navigate("Message", { roomName: item.name, listRoom: rooms });
   };
   const renderLoading = () => {
     return (
